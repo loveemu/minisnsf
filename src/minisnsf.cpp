@@ -33,7 +33,8 @@
 #define APP_VER     "[2015-04-02]"
 #define APP_URL     "http://github.com/loveemu/minisnsf"
 
-#define SNSF_EXE_HEADER_SIZE	8
+#define SNSF_PSF_VERSION        0x23
+#define SNSF_EXE_HEADER_SIZE    8
 
 static void writeInt(uint8_t * buf, uint32_t value)
 {
@@ -48,7 +49,7 @@ bool exe2snsf(const char * snsf_path, uint8_t * exe, uint32_t exe_size, std::map
 	ZlibWriter zlib_exe(Z_BEST_COMPRESSION);
 	zlib_exe.write(exe, exe_size);
 
-	if (!PSFFile::save(snsf_path, 0x23, NULL, 0, zlib_exe, tags)) {
+	if (!PSFFile::save(snsf_path, SNSF_PSF_VERSION, NULL, 0, zlib_exe, tags)) {
 		return false;
 	}
 
