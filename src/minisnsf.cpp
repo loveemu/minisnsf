@@ -58,10 +58,11 @@ bool exe2snsf(const char * snsf_path, uint8_t * exe, uint32_t exe_size, std::map
 
 bool make_minisnsf(const char * snsf_path, uint32_t address, uint32_t size, uint32_t num, std::map<std::string, std::string>& tags)
 {
-	uint8_t exe[SNSF_EXE_HEADER_SIZE + 4];
+	uint8_t exe[SNSF_EXE_HEADER_SIZE + 256];
+	memset(exe, 0, SNSF_EXE_HEADER_SIZE + 256);
 
 	// limit size
-	if (size > 4) {
+	if (size > 256) {
 		return false;
 	}
 
