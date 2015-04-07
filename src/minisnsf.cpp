@@ -91,8 +91,8 @@ static void usage(const char * progname)
 	printf("`--help`\n");
 	printf("  : Show help\n");
 	printf("\n");
-	printf("`--psfby`, `--snsfby`\n");
-	printf("  : Set creator of SNSF\n");
+	printf("`--psfby`, `--snsfby` [name]\n");
+	printf("  : Set creator name of SNSF\n");
 	printf("\n");
 }
 

@@ -18,5 +18,5 @@ Syntax: `minisnsf [Base name] [Offset] [Size] [Count]`
 `--help`
   : Show help
 
-`--psfby`, `--snsfby`
-  : Set creator of SNSF
+`--psfby`, `--snsfby` [name]
+  : Set creator name of SNSF
