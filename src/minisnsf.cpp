@@ -30,7 +30,7 @@
 #endif
 
 #define APP_NAME    "minisnsf"
-#define APP_VER     "[2015-04-02]"
+#define APP_VER     "[2015-04-07]"
 #define APP_URL     "http://github.com/loveemu/minisnsf"
 
 #define SNSF_PSF_VERSION        0x23
@@ -91,6 +91,9 @@ static void usage(const char * progname)
 	printf("`--help`\n");
 	printf("  : Show help\n");
 	printf("\n");
+	printf("`--psfby`, `--snsfby`\n");
+	printf("  : Set creator of SNSF\n");
+	printf("\n");
 }
 
 int main(int argc, char *argv[])
@@ -103,11 +106,22 @@ int main(int argc, char *argv[])
 	long longval;
 	char *endptr = NULL;
 
+	char *psfby = NULL;
+
 	int argi = 1;
 	while (argi < argc && argv[argi][0] == '-') {
 		if (strcmp(argv[argi], "--help") == 0) {
 			usage(argv[0]);
 			return EXIT_FAILURE;
+		}
+		else if (strcmp(argv[argi], "--psfby") == 0 || strcmp(argv[argi], "--snsfby") == 0) {
+			if (argi + 1 >= argc) {
+				fprintf(stderr, "Error: Too few arguments for \"%s\"\n", argv[argi]);
+				return EXIT_FAILURE;
+			}
+
+			psfby = argv[argi + 1];
+			argi++;
 		}
 		else {
 			fprintf(stderr, "Error: Unknown option \"%s\"\n", argv[argi]);
@@ -152,6 +166,10 @@ int main(int argc, char *argv[])
 	for (uint32_t num = 0; num < count; num++) {
 		std::map<std::string, std::string> tags;
 		tags["_lib"] = libname;
+
+		if (psfby != NULL && strcmp(psfby, "") != 0) {
+			tags["snsfby"] = psfby;
+		}
 
 		char snsf_path[PATH_MAX];
 		sprintf(snsf_path, "%s-%04d.minisnsf", snsf_basename, num);

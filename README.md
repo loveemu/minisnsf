@@ -15,5 +15,8 @@ Syntax: `minisnsf [Base name] [Offset] [Size] [Count]`
 
 ### Options ###
 
---help
+`--help`
   : Show help
+
+`--psfby`, `--snsfby`
+  : Set creator of SNSF
