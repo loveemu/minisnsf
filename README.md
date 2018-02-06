@@ -1,5 +1,6 @@
 MINISNSF: Numbered minisnsf creation utility
 ============================================
+[![Travis Build Status](https://travis-ci.org/loveemu/minisnsf.svg?branch=master)](https://travis-ci.org/loveemu/minisnsf) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/4os92k855s51kuxw/branch/master?svg=true)](https://ci.appveyor.com/project/loveemu/minisnsf/branch/master)
 
 Numbered minisnsf creation utility, where the offset is known.
 
