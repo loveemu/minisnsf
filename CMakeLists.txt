@@ -52,7 +52,15 @@ set(SRCS
     src/ZlibWriter.cpp
 )
 
-add_executable(minisnsf ${SRCS})
+set(HDRS
+    src/cpath.h
+    src/minisnsf.h
+    src/PSFFile.h
+    src/ZlibReader.h
+    src/ZlibWriter.h
+)
+
+add_executable(minisnsf ${SRCS} ${HDRS})
 
 if(ZLIB_FOUND)
     include_directories(${ZLIB_INCLUDE_DIRS})
