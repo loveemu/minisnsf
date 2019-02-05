@@ -14,10 +14,24 @@ Usage
 
 Syntax: `minisnsf [Base name] [Offset] [Size] [Count]`
 
-### Options ###
+or
+
+Syntax: `minisnsf [Base name] [Offset] =[Hex pattern] [Count]`
+
+### Options
 
 `--help`
   : Show help
 
 `--psfby`, `--snsfby` [name]
   : Set creator name of SNSF
+
+### Examples
+
+```bash
+minisnsf mario 0xc816 1 64
+```
+
+```bash
+minisnsf mario 0xc816 =NNNNDEADBEEF 64
+```

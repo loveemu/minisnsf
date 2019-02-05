@@ -56,25 +56,6 @@ bool exe2snsf(const char * snsf_path, uint8_t * exe, uint32_t exe_size, std::map
 	return true;
 }
 
-bool make_minisnsf(const char * snsf_path, uint32_t address, uint32_t size, uint32_t num, std::map<std::string, std::string>& tags)
-{
-	uint8_t exe[SNSF_EXE_HEADER_SIZE + 256];
-	memset(exe, 0, SNSF_EXE_HEADER_SIZE + 256);
-
-	// limit size
-	if (size > 256) {
-		return false;
-	}
-
-	// make exe
-	writeInt(&exe[0], address);
-	writeInt(&exe[4], size);
-	writeInt(&exe[8], num);
-
-	// write mini2sf file
-	return exe2snsf(snsf_path, exe, SNSF_EXE_HEADER_SIZE + size, tags);
-}
-
 static void usage(const char * progname)
 {
 	printf("%s %s\n", APP_NAME, APP_VER);
@@ -84,6 +65,10 @@ static void usage(const char * progname)
 	printf("-----\n");
 	printf("\n");
 	printf("Syntax: `%s (options) [Base name] [Offset] [Size] [Count]`\n", progname);
+	printf("\n");
+	printf("or\n");
+	printf("\n");
+	printf("Syntax: `%s (options) [Base name] [Offset] =[Hex pattern] [Count]`\n", progname);
 	printf("\n");
 
 	printf("### Options\n");
@@ -146,14 +131,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Error: Number format error \"%s\"\n", argv[argi + 1]);
 		return EXIT_FAILURE;
 	}
-	uint32_t offset = (uint32_t)longval;
-
-	longval = strtol(argv[argi + 2], &endptr, 10);
-	if (*endptr != '\0' || errno == ERANGE || longval < 0) {
-		fprintf(stderr, "Error: Number format error \"%s\"\n", argv[argi + 2]);
-		return EXIT_FAILURE;
-	}
-	size_t size = (size_t)longval;
+	uint32_t load_offset = (uint32_t)longval;
 
 	longval = strtol(argv[argi + 3], &endptr, 10);
 	if (*endptr != '\0' || errno == ERANGE || longval < 0) {
@@ -161,6 +139,73 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 	uint32_t count = (uint32_t)longval;
+
+	uint8_t exe[SNSF_EXE_HEADER_SIZE + 256];
+	memset(exe, 0, SNSF_EXE_HEADER_SIZE + 256);
+
+	off_t offset_of_num = 0;
+	size_t size_of_num = 0;
+	size_t romsize = 0;
+	if (argv[argi + 2][0] == '=') {
+		std::string hexstring(&argv[argi + 2][1]);
+
+		if (hexstring.length() % 2 != 0) {
+			fprintf(stderr, "Error: Hex string length error\n");
+			return EXIT_FAILURE;
+		}
+		romsize = hexstring.length() / 2;
+		if (romsize > 256) {
+			fprintf(stderr, "Error: Output size error\n");
+			return EXIT_FAILURE;
+		}
+
+		bool in_number = false;
+		uint8_t * hex = &exe[SNSF_EXE_HEADER_SIZE];
+		for (off_t offset = 0; offset < (off_t)romsize; offset++) {
+			std::string bytestr = hexstring.substr(offset * 2, 2);
+
+			if (strcasecmp(bytestr.c_str(), "NN") == 0) {
+				if (size_of_num == 0) {
+					offset_of_num = offset;
+					size_of_num = 1;
+					in_number = true;
+				}
+				else {
+					if (!in_number) {
+						fprintf(stderr, "Error: Multiple number field\n");
+						return EXIT_FAILURE;
+					}
+					size_of_num++;
+				}
+			}
+			else {
+				in_number = false;
+
+				longval = strtol(bytestr.c_str(), &endptr, 16);
+				if (*endptr != '\0' || errno == ERANGE) {
+					fprintf(stderr, "Error: Number format error \"%s\"\n", bytestr.c_str());
+					return EXIT_FAILURE;
+				}
+
+				hex[offset] = (uint8_t)longval;
+			}
+		}
+	} else {
+		longval = strtol(argv[argi + 2], &endptr, 10);
+		if (*endptr != '\0' || errno == ERANGE || longval < 0) {
+			fprintf(stderr, "Error: Number format error \"%s\"\n", argv[argi + 2]);
+			return EXIT_FAILURE;
+		}
+		romsize = size_of_num = (size_t)longval;
+	}
+
+	if (size_of_num > 4) {
+		fprintf(stderr, "Error: Output number size error\n");
+		return EXIT_FAILURE;
+	}
+
+	writeInt(&exe[0], load_offset);
+	writeInt(&exe[4], (uint32_t)romsize);
 
 	int num_error = 0;
 	for (uint32_t num = 0; num < count; num++) {
@@ -174,7 +219,14 @@ int main(int argc, char *argv[])
 		char snsf_path[PATH_MAX];
 		sprintf(snsf_path, "%s-%04d.minisnsf", snsf_basename, num);
 
-		if (make_minisnsf(snsf_path, offset, (uint32_t)size, num, tags)) {
+		// patch exe
+		if (offset_of_num >= 0) {
+			for (off_t i = 0; i < (off_t)size_of_num; i++) {
+				exe[SNSF_EXE_HEADER_SIZE + offset_of_num + i] = (num >> (8 * i)) & 0xff;
+			}
+		}
+
+		if (exe2snsf(snsf_path, exe, SNSF_EXE_HEADER_SIZE + (uint32_t)romsize, tags)) {
 			printf("Created %s\n", snsf_path);
 		}
 		else {
